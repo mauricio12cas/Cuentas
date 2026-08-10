@@ -99,6 +99,17 @@ function loadStateFromLocalStorage() {
   if (savedData) {
     try {
       state = JSON.parse(savedData);
+      
+      // Reset if old default entries or lists are detected to ensure a clean start
+      const hasDefaultData = state.weeks.some(w => 
+        w.entries.some(e => e.cafeteria === "Cafetería Central" || e.cafeteria === "Coffee Shakers")
+      ) || (state.cafeterias && state.cafeterias.includes("Espresso Bar"));
+      
+      if (hasDefaultData) {
+        initEmptyState();
+        return;
+      }
+      
       if (!state.weeks) state.weeks = [];
       if (!state.cafeterias) state.cafeterias = [];
       rebuildCafeteriasList();
@@ -118,15 +129,11 @@ function initEmptyState() {
   const today = new Date();
   const currentWeek = getWeekRange(today);
   
-  // Set default initial entries
-  const mondayVal = parseLocalDate(currentWeek.id);
-  const formattedMon = `${mondayVal.getDate() === 10 ? 'Lunes 10 Ago' : getFormattedToday()}`;
-  
   state.weeks.push({
     id: currentWeek.id,
     title: currentWeek.title,
     year: currentWeek.year,
-   
+    entries: []
   });
   
   state.activeWeekId = currentWeek.id;
@@ -140,7 +147,6 @@ function saveStateToLocalStorage() {
 
 function rebuildCafeteriasList() {
   const uniqueNames = new Set();
-  const defaultList = ["Cafe Del Sur", "Amïn", "Breck", "Charcuteri","Gertrudis","Zuzu"];
   
   state.weeks.forEach(w => {
     w.entries.forEach(e => {
@@ -150,7 +156,6 @@ function rebuildCafeteriasList() {
     });
   });
   
-  defaultList.forEach(name => uniqueNames.add(name));
   state.cafeterias = Array.from(uniqueNames).sort();
 }
 
