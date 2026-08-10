@@ -32,7 +32,6 @@
   --transition: all 0.2s ease-in-out;
 }
 
-/* Dark Mode is mapped to the same elegant high contrast slate mode to keep the user's requested palette consistent */
 [data-theme="dark"] {
   --bg-primary: #252C34;      /* Deep slate background */
   --bg-secondary: #000000;    /* Black cards / inputs */
@@ -284,6 +283,11 @@ body {
   background: var(--bg-primary);
 }
 
+.text-input.active-field {
+  border: 2px solid var(--text-primary) !important;
+  background-color: var(--bg-primary);
+}
+
 /* Pill selector grid for click-only options */
 .pill-selector-grid {
   display: flex;
@@ -312,6 +316,44 @@ body {
   background-color: var(--text-primary);
   color: var(--bg-secondary);
   border-color: var(--text-primary);
+}
+
+/* Custom Keypad Styles */
+.custom-keypad {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+  max-width: 260px;
+  margin: 8px auto 0 auto;
+  width: 100%;
+}
+
+.keypad-btn {
+  height: 40px;
+  font-family: inherit;
+  font-size: 16px;
+  font-weight: 700;
+  border: 1px solid var(--text-primary);
+  background-color: var(--bg-secondary);
+  color: var(--text-primary);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  user-select: none;
+  transition: var(--transition);
+}
+
+.keypad-btn:active {
+  background-color: var(--text-primary);
+  color: var(--bg-secondary);
+}
+
+.keypad-btn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+  border-color: var(--border-color);
 }
 
 /* Table Design */
