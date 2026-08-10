@@ -126,22 +126,7 @@ function initEmptyState() {
     id: currentWeek.id,
     title: currentWeek.title,
     year: currentWeek.year,
-    entries: [
-      {
-        id: generateUUID(),
-        cafeteria: "Cafetería Central",
-        factura: "102",
-        total: 1250.00,
-        pago: formattedMon
-      },
-      {
-        id: generateUUID(),
-        cafeteria: "Coffee Shakers",
-        factura: "",
-        total: 870.50,
-        pago: "Pendiente"
-      }
-    ]
+   
   });
   
   state.activeWeekId = currentWeek.id;
@@ -155,7 +140,7 @@ function saveStateToLocalStorage() {
 
 function rebuildCafeteriasList() {
   const uniqueNames = new Set();
-  const defaultList = ["Cafetería Central", "Coffee Shakers", "Granos Selectos", "Espresso Bar"];
+  const defaultList = ["Cafe Del Sur", "Amïn", "Breck", "Charcuteri","Gertrudis","Zuzu"];
   
   state.weeks.forEach(w => {
     w.entries.forEach(e => {
