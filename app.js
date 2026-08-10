@@ -348,6 +348,59 @@ const pagoValInput = document.getElementById('modal-pago-val');
 const cafeteriaPillsContainer = document.getElementById('modal-cafeteria-pills');
 const pagoPillsContainer = document.getElementById('modal-pago-pills');
 
+// Track active input for custom keypad
+let activeInputField = totalInput;
+
+function setActiveField(inputEl) {
+  activeInputField = inputEl;
+  facturaInput.classList.remove('active-field');
+  totalInput.classList.remove('active-field');
+  inputEl.classList.add('active-field');
+  
+  // Disable dot on invoice number
+  const dotBtn = document.getElementById('keypad-dot');
+  if (dotBtn) {
+    dotBtn.disabled = (inputEl === facturaInput);
+  }
+}
+
+// Bind click/focus to inputs to shift custom keypad target
+facturaInput.addEventListener('focus', () => setActiveField(facturaInput));
+facturaInput.addEventListener('click', () => setActiveField(facturaInput));
+totalInput.addEventListener('focus', () => setActiveField(totalInput));
+totalInput.addEventListener('click', () => setActiveField(totalInput));
+
+// Custom Keypad Listeners
+document.addEventListener('DOMContentLoaded', () => {
+  const keypad = document.getElementById('modal-numeric-keypad');
+  if (keypad) {
+    keypad.querySelectorAll('.keypad-btn').forEach(btn => {
+      // Prevent focus loss on active input
+      btn.addEventListener('mousedown', (e) => {
+        e.preventDefault();
+      });
+      
+      btn.addEventListener('click', () => {
+        if (!activeInputField) return;
+        const key = btn.getAttribute('data-key');
+        
+        if (key === 'backspace') {
+          activeInputField.value = activeInputField.value.slice(0, -1);
+        } else if (key === '.') {
+          if (activeInputField === totalInput && !activeInputField.value.includes('.')) {
+            activeInputField.value += '.';
+          }
+        } else {
+          // Type digit
+          activeInputField.value += key;
+        }
+        
+        activeInputField.dispatchEvent(new Event('input'));
+      });
+    });
+  }
+});
+
 function openRecordModal(entryId = null) {
   recordForm.reset();
   recordIdInput.value = entryId || '';
@@ -387,11 +440,8 @@ function openRecordModal(entryId = null) {
   
   recordOverlay.classList.add('active');
   
-  if (state.cafeterias.length === 0) {
-    cafeteriaInput.focus();
-  } else {
-    totalInput.focus();
-  }
+  // Default active field is totalInput
+  setActiveField(totalInput);
 }
 
 function closeRecordModal() {
