@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Registro de Cuentas - Cafeterías</title>
+  
+  <!-- PWA Manifest & Meta -->
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#252C34">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <link rel="apple-touch-icon" href="icons/icon-192.jpg">
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- CSS Stylesheet -->
+  <link rel="stylesheet" href="styles.css">
+  
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body>
+  <div class="app-container">
+    <!-- Header -->
+    <header class="app-header">
+      <div class="app-logo">
+        <i data-lucide="coffee"></i>
+        <h1>Registro de Cafeterías</h1>
+      </div>
+      <div class="header-controls">
+        <!-- Add Cafeteria -->
+        <button class="btn-icon" id="btn-add-cafeteria" title="Agregar nueva cafetería">
+          <i data-lucide="store" style="width: 16px; height: 16px;"></i>
+        </button>
+        <!-- Print -->
+        <button class="btn-icon" id="btn-print-page" title="Imprimir hoja">
+          <i data-lucide="printer" style="width: 16px; height: 16px;"></i>
+        </button>
+        <!-- Backup -->
+        <button class="btn-icon" id="btn-backup" title="Respaldar datos">
+          <i data-lucide="database" style="width: 16px; height: 16px;"></i>
+        </button>
+        <!-- Dark/Light Theme -->
+        <button class="btn-icon" id="theme-toggle" title="Cambiar tema">
+          <i data-lucide="sun" id="theme-icon-light" style="display: none; width: 16px; height: 16px;"></i>
+          <i data-lucide="moon" id="theme-icon-dark" style="width: 16px; height: 16px;"></i>
+        </button>
+      </div>
+    </header>
+
+    <!-- Week Navigator Bar -->
+    <section class="week-navigator-bar">
+      <div class="week-selector-wrapper">
+        <select id="week-dropdown" class="week-dropdown">
+          <!-- Populated by JavaScript -->
+        </select>
+        <button class="btn btn-secondary" id="btn-new-week" style="padding: 6px 12px; font-size: 13px;">
+          <i data-lucide="plus" style="width: 14px; height: 14px;"></i> Nueva Semana
+        </button>
+      </div>
+      <div>
+        <button class="btn btn-danger" id="btn-delete-week" title="Eliminar semana actual" style="padding: 6px 12px; font-size: 13px;">
+          <i data-lucide="trash-2" style="width: 14px; height: 14px;"></i> Eliminar Semana
+        </button>
+      </div>
+    </section>
+
+    <!-- Main Sheet -->
+    <section class="ledger-sheet">
+      <!-- Title & Trigger to Add -->
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+        <h2 style="font-size: 15px; font-weight: 600; color: var(--text-secondary);" id="active-week-label">
+          Cuentas registradas
+        </h2>
+        <button class="btn btn-primary" id="btn-open-record-modal" style="padding: 8px 14px;">
+          <i data-lucide="plus-circle" style="width: 14px; height: 14px;"></i> Agregar Cuenta
+        </button>
+      </div>
+
+      <!-- Ledger Table -->
+      <div class="table-wrapper">
+        <table class="ledger-table">
+          <thead>
+            <tr>
+              <th>Cafetería</th>
+              <th>Factura</th>
+              <th>Total</th>
+              <th>Día de Pago</th>
+              <th style="width: 80px; text-align: right;">Acciones</th>
+            </tr>
+          </thead>
+          <tbody id="sheet-entries">
+            <!-- Entries loaded dynamically -->
+          </tbody>
+        </table>
+        
+        <div class="empty-state" id="table-empty-state" style="display: none;">
+          <i data-lucide="book-open"></i>
+          <span class="empty-state-title">Semana sin registros</span>
+          <p style="font-size: 12px;">Haz clic en "Agregar Cuenta" para registrar una cafetería en esta semana.</p>
+        </div>
+      </div>
+
+      <!-- Totals Summary Bar -->
+      <div class="ledger-totals-summary">
+        <span style="color: var(--text-secondary);" id="active-week-span">Semana</span>
+        <div class="totals-group">
+          <div class="total-pill val-total">
+            Total: <span id="week-total">$0.00</span>
+          </div>
+          <div class="total-pill val-paid">
+            Pagado: <span id="week-paid">$0.00</span>
+          </div>
+          <div class="total-pill val-pending">
+            Pendiente: <span id="week-pending">$0.00</span>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <!-- MODAL: AGREGAR / EDITAR REGISTRO -->
+  <div class="modal-overlay" id="modal-record-overlay">
+    <div class="modal">
+      <div class="modal-header">
+        <h3 class="modal-title" id="record-modal-title">Agregar Cuenta</h3>
+        <button class="row-del-btn" id="btn-close-record-modal"><i data-lucide="x" style="width:16px; height:16px;"></i></button>
+      </div>
+      <form id="record-form">
+        <input type="hidden" id="record-entry-id">
+        <div class="modal-body">
+          
+          <!-- Cafeteria Selection -->
+          <div class="input-group">
+            <label>Selecciona una Cafetería</label>
+            <div class="pill-selector-grid" id="modal-cafeteria-pills">
+              <!-- Populated dynamically -->
+            </div>
+            <input type="hidden" id="modal-cafeteria-val" required>
+          </div>
+
+          <!-- Invoice Number (Numbers only, custom keypad inputmode none) -->
+          <div class="input-group">
+            <label for="modal-factura-input">Número de Factura</label>
+            <input type="text" inputmode="none" id="modal-factura-input" class="text-input" placeholder="Solo números (Opcional)">
+          </div>
+
+          <!-- Total (Numbers only, custom keypad inputmode none) -->
+          <div class="input-group">
+            <label for="modal-total-input">Total de la Semana ($)</label>
+            <input type="text" inputmode="none" id="modal-total-input" class="text-input" placeholder="0.00" required>
+          </div>
+
+          <!-- Payment Day (Dynamic week pills) -->
+          <div class="input-group">
+            <label>Día de Pago / Estado</label>
+            <div class="pill-selector-grid" id="modal-pago-pills">
+              <!-- Populated dynamically based on active week -->
+            </div>
+            <input type="hidden" id="modal-pago-val" value="Pendiente">
+          </div>
+
+          <!-- Custom Web Numeric Keypad -->
+          <div class="input-group" id="keypad-container" style="border-top: 1px solid var(--border-color); padding-top: 12px; margin-top: 4px;">
+            <label style="text-align: center; display: block; margin-bottom: 4px;">Teclado de Pantalla</label>
+            <div class="custom-keypad" id="modal-numeric-keypad">
+              <button type="button" class="keypad-btn" data-key="1">1</button>
+              <button type="button" class="keypad-btn" data-key="2">2</button>
+              <button type="button" class="keypad-btn" data-key="3">3</button>
+              <button type="button" class="keypad-btn" data-key="4">4</button>
+              <button type="button" class="keypad-btn" data-key="5">5</button>
+              <button type="button" class="keypad-btn" data-key="6">6</button>
+              <button type="button" class="keypad-btn" data-key="7">7</button>
+              <button type="button" class="keypad-btn" data-key="8">8</button>
+              <button type="button" class="keypad-btn" data-key="9">9</button>
+              <button type="button" class="keypad-btn" id="keypad-dot" data-key=".">.</button>
+              <button type="button" class="keypad-btn" data-key="0">0</button>
+              <button type="button" class="keypad-btn" data-key="backspace">⌫</button>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" id="btn-cancel-record">Cancelar</button>
+          <button type="submit" class="btn btn-primary" id="btn-save-record">Guardar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: NUEVA SEMANA -->
+  <div class="modal-overlay" id="modal-week-overlay">
+    <div class="modal">
+      <div class="modal-header">
+        <h3 class="modal-title">Crear Semana</h3>
+        <button class="row-del-btn" id="btn-close-week-modal"><i data-lucide="x" style="width:16px; height:16px;"></i></button>
+      </div>
+      <div class="modal-body">
+        <p style="font-size: 12px; color: var(--text-secondary); line-height: 1.4;">
+          El sistema calculará automáticamente la semana de Lunes a Sábado.
+        </p>
+        <div class="input-group">
+          <label for="week-date-picker">Selecciona una fecha</label>
+          <input type="date" id="week-date-picker" class="text-input">
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" id="btn-cancel-week">Cancelar</button>
+        <button class="btn btn-primary" id="btn-save-week">Crear</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: RESPALDO Y RESTAURACIÓN -->
+  <div class="modal-overlay" id="modal-backup-overlay">
+    <div class="modal">
+      <div class="modal-header">
+        <h3 class="modal-title">Respaldar / Importar Datos</h3>
+        <button class="row-del-btn" id="btn-close-backup-modal"><i data-lucide="x" style="width:16px; height:16px;"></i></button>
+      </div>
+      <div class="modal-body" style="gap: 16px;">
+        <p style="font-size: 12px; color: var(--text-secondary); line-height: 1.4;">
+          Guarda tus datos en un archivo de respaldo o importa datos de un archivo existente.
+        </p>
+        <div style="display: flex; gap: 8px;">
+          <button class="btn btn-primary" id="btn-export-json" style="flex: 1; padding: 12px;">
+            <i data-lucide="download" style="width: 16px; height: 16px;"></i> Exportar
+          </button>
+          <button class="btn btn-secondary" id="btn-trigger-import" style="flex: 1; padding: 12px;">
+            <i data-lucide="upload" style="width: 16px; height: 16px;"></i> Importar
+          </button>
+          <input type="file" id="import-file-input" accept=".json" style="display: none;">
+        </div>
+        <div id="import-status-msg" style="font-size: 11px; text-align: center; margin-top: 4px; font-weight: 500;"></div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" id="btn-close-backup">Cerrar</button>
+      </div>
+    </div>
+  <!-- MODAL: AGREGAR NUEVA CAFETERÍA -->
+  <div class="modal-overlay" id="modal-add-cafeteria-overlay">
+    <div class="modal">
+      <div class="modal-header">
+        <h3 class="modal-title">Agregar Nueva Cafetería</h3>
+        <button class="row-del-btn" id="btn-close-new-cafeteria-modal"><i data-lucide="x" style="width:16px; height:16px;"></i></button>
+      </div>
+      <form id="new-cafeteria-form">
+        <div class="modal-body">
+          <div class="input-group">
+            <label for="new-cafeteria-name-input">Nombre de la Cafetería</label>
+            <input type="text" id="new-cafeteria-name-input" class="text-input" placeholder="Ej. Café Espresso" required>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" id="btn-cancel-new-cafeteria">Cancelar</button>
+          <button type="submit" class="btn btn-primary">Guardar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- JavaScript App Logic -->
+  <script src="app.js"></script>
+</body>
+</html>
